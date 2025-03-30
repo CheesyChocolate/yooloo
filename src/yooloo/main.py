@@ -1,8 +1,9 @@
 from yooloo.module.labelme2coco import convert_labelme_to_coco
+from yooloo.module.labelme2yolo import convert_labelme_to_yolov8
 
 
-def main():
-    # Convert all LabelMe files in 'foo' directory to COCO format in 'coco' directory
+def main_labelme_to_coco():
+    # Convert all LabelMe files to COCO format
     result = convert_labelme_to_coco(
         labelme_dir="data/selected-rectangle/labelme",
         coco_dir="data/selected-rectangle/coco",
@@ -18,6 +19,25 @@ def main():
     print(
         f"Converted {len(result['images'])} images with {len(result['annotations'])} annotations"
     )
+
+
+def main_labelme_to_yolo():
+    # Convert all LabelMe files to YOLOv8 format
+    stats = convert_labelme_to_yolov8(
+        labelme_dir="data/selected-rectangle/labelme",
+        output_dir="data/selected-rectangle/yolo",
+        train_ratio=0.8,  # 80%/20%
+        copy_images=True,  # copy/link
+    )
+
+    print(f"Conversion complete with {stats['annotations_count']} annotations")
+    print(f"Train set: {stats['train_files']} images")
+    print(f"Validation set: {stats['val_files']} images")
+
+
+def main():
+    # main_labelme_to_coco()
+    main_labelme_to_yolo()
 
 
 if __name__ == "__main__":
