@@ -60,6 +60,7 @@ def convert_labelme_to_coco(
     # Create category entries for COCO format
     for i, category_name in enumerate(categories, 1):
         coco_format["categories"].append(
+            # TODO: correctly support supercategories
             {"id": i, "name": category_name, "supercategory": "none"}
         )
 
@@ -95,10 +96,10 @@ def convert_labelme_to_coco(
         # Create image entry
         coco_format["images"].append(
             {
+                "height": image_height,
+                "width": image_width,
                 "id": image_id,
                 "file_name": image_filename,
-                "width": image_width,
-                "height": image_height,
                 "date_captured": "",
                 "license": 1,
                 "coco_url": "",
@@ -194,13 +195,13 @@ def convert_labelme_to_coco(
             # Create annotation entry
             coco_format["annotations"].append(
                 {
-                    "id": annotation_id,
-                    "image_id": image_id,
-                    "category_id": category_id_map[label],
-                    "segmentation": segmentation,
-                    "area": area,
-                    "bbox": [x_min, y_min, width, height],
                     "iscrowd": 0,
+                    "image_id": image_id,
+                    "bbox": [x_min, y_min, width, height],
+                    "segmentation": segmentation,
+                    "category_id": category_id_map[label],
+                    "id": annotation_id,
+                    "area": area,
                 }
             )
 
