@@ -24,7 +24,9 @@ classifiers = [
   "Programming Language :: Python :: Implementation :: CPython",
   "Programming Language :: Python :: Implementation :: PyPy",
 ]
-dependencies = []
+dependencies = [
+    "labelme==5.3.0",
+]
 
 [project.urls]
 Documentation = "https://github.com/CheesyChocolate/yooloo#readme"
