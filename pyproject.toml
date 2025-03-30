@@ -1,0 +1,61 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "yooloo"
+dynamic = ["version"]
+description = ''
+readme = "README.md"
+requires-python = ">=3.8"
+license = "MIT"
+keywords = []
+authors = [
+  { name = "CheesyChocolate", email = "dev@behnamlal.xyz" },
+]
+classifiers = [
+  "Development Status :: 4 - Beta",
+  "Programming Language :: Python",
+  "Programming Language :: Python :: 3.8",
+  "Programming Language :: Python :: 3.9",
+  "Programming Language :: Python :: 3.10",
+  "Programming Language :: Python :: 3.11",
+  "Programming Language :: Python :: 3.12",
+  "Programming Language :: Python :: Implementation :: CPython",
+  "Programming Language :: Python :: Implementation :: PyPy",
+]
+dependencies = []
+
+[project.urls]
+Documentation = "https://github.com/CheesyChocolate/yooloo#readme"
+Issues = "https://github.com/CheesyChocolate/yooloo/issues"
+Source = "https://github.com/CheesyChocolate/yooloo"
+
+[tool.hatch.version]
+path = "src/yooloo/__about__.py"
+
+[tool.hatch.envs.types]
+extra-dependencies = [
+  "mypy>=1.0.0",
+]
+[tool.hatch.envs.types.scripts]
+check = "mypy --install-types --non-interactive {args:src/yooloo tests}"
+
+[tool.coverage.run]
+source_pkgs = ["yooloo", "tests"]
+branch = true
+parallel = true
+omit = [
+  "src/yooloo/__about__.py",
+]
+
+[tool.coverage.paths]
+yooloo = ["src/yooloo", "*/yooloo/src/yooloo"]
+tests = ["tests", "*/yooloo/tests"]
+
+[tool.coverage.report]
+exclude_lines = [
+  "no cov",
+  "if __name__ == .__main__.:",
+  "if TYPE_CHECKING:",
+]
