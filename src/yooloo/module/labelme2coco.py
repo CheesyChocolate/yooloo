@@ -76,6 +76,7 @@ def convert_labelme_to_coco(
         image_filename = os.path.basename(
             labelme_data.get("imagePath", labelme_file.replace(".json", ".jpg"))
         )
+        image_filename = os.path.join(labelme_dir, image_filename)
         image_width = labelme_data.get("imageWidth", 0)
         image_height = labelme_data.get("imageHeight", 0)
 
