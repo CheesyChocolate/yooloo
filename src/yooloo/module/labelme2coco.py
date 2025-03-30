@@ -1,3 +1,5 @@
+# TODO: function to train test validation split
+
 import os
 import json
 import numpy as np
