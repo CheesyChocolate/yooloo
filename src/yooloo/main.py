@@ -11,6 +11,14 @@ def main():
         f"Converted {len(result['images'])} images with {len(result['annotations'])} annotations"
     )
 
+    result = convert_labelme_to_coco(
+        labelme_dir="data/selected-polygons/labelme",
+        coco_dir="data/selected-polygons/coco",
+    )
+    print(
+        f"Converted {len(result['images'])} images with {len(result['annotations'])} annotations"
+    )
+
 
 if __name__ == "__main__":
     main()
