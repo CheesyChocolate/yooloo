@@ -29,7 +29,16 @@ def main_labelme_to_yolo():
         train_ratio=0.8,  # 80%/20%
         copy_images=True,  # copy/link
     )
+    print(f"Conversion complete with {stats['annotations_count']} annotations")
+    print(f"Train set: {stats['train_files']} images")
+    print(f"Validation set: {stats['val_files']} images")
 
+    stats = convert_labelme_to_yolov8(
+        labelme_dir="data/selected-polygons/labelme",
+        output_dir="data/selected-polygons/yolo",
+        train_ratio=0.8,  # 80%/20%
+        copy_images=True,  # copy/link
+    )
     print(f"Conversion complete with {stats['annotations_count']} annotations")
     print(f"Train set: {stats['train_files']} images")
     print(f"Validation set: {stats['val_files']} images")
