@@ -40,7 +40,8 @@ def convert_labelme_to_yolov8(
 
     # Find all labelme JSON files
     labelme_json_files = sorted(
-        glob(os.path.join(labelme_dir, "**/*.json"), recursive=True))
+        glob(os.path.join(labelme_dir, "**/*.json"), recursive=True)
+    )
     if len(labelme_json_files) == 0:
         print(f"No JSON files found in {labelme_dir}")
         return {"error": "No JSON files found"}
@@ -112,8 +113,7 @@ def convert_labelme_to_yolov8(
                 # Handle relative paths
                 if not os.path.isabs(image_path):
                     # Try to find relative to the JSON file
-                    image_path = os.path.join(os.path.dirname(labelme_file),
-                                              image_path)
+                    image_path = os.path.join(os.path.dirname(labelme_file), image_path)
 
                 if not os.path.exists(image_path):
                     # Try to find the image with different extensions
@@ -145,8 +145,9 @@ def convert_labelme_to_yolov8(
 
             # Get image filename for output
             image_filename = os.path.basename(image_path)
-            output_image_path = os.path.join(output_dir, "images", set_name,
-                                             image_filename)
+            output_image_path = os.path.join(
+                output_dir, "images", set_name, image_filename
+            )
             output_label_path = os.path.join(
                 output_dir,
                 "labels",
@@ -165,7 +166,8 @@ def convert_labelme_to_yolov8(
             else:
                 try:
                     rel_path = os.path.relpath(
-                        image_path, os.path.dirname(output_image_path))
+                        image_path, os.path.dirname(output_image_path)
+                    )
                     if os.path.exists(output_image_path):
                         os.remove(output_image_path)
                     os.symlink(rel_path, output_image_path)
@@ -257,8 +259,10 @@ def convert_labelme_to_yolov8(
                     radius_point_x, radius_point_y = points[1]
 
                     # Calculate radius
-                    radius = np.sqrt((center_x - radius_point_x)**2 +
-                                     (center_y - radius_point_y)**2)
+                    radius = np.sqrt(
+                        (center_x - radius_point_x) ** 2
+                        + (center_y - radius_point_y) ** 2
+                    )
 
                     # Convert to bounding box
                     x_min = center_x - radius
@@ -292,9 +296,7 @@ def convert_labelme_to_yolov8(
                     f.write(line + "\n")
 
     # Print summary
-    print(
-        f"Conversion complete: {len(labelme_json_files)} LabelMe files processed"
-    )
+    print(f"Conversion complete: {len(labelme_json_files)} LabelMe files processed")
     print(f"Train set: {stats['train_files']} images")
     print(f"Validation set: {stats['val_files']} images")
     print(f"Total annotations: {stats['annotations_count']}")
