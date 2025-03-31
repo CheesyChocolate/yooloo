@@ -1,5 +1,6 @@
 from yooloo.module.labelme2coco import convert_labelme_to_coco
 from yooloo.module.labelme2yolo import convert_labelme_to_yolov8
+from yooloo.module.labelme2voc import convert_labelme_to_voc
 
 
 def main_labelme_to_coco():
@@ -44,9 +45,28 @@ def main_labelme_to_yolo():
     print(f"Validation set: {stats['val_files']} images")
 
 
+def main_labelme_to_voc():
+    # Convert all LabelMe files to Pascal VOC format
+    stats = convert_labelme_to_voc(
+        labelme_dir="data/selected-rectangle/labelme",
+        output_dir="data/selected-rectangle/voc",
+        train_ratio=0.8,  # 80% train, 20% val
+        # copy_images=True  # Copy/link images
+    )
+
+    stats = convert_labelme_to_voc(
+        labelme_dir="data/selected-polygons/labelme",
+        output_dir="data/selected-polygons/voc",
+        train_ratio=0.8,  # 80% train, 20% val
+        # copy_images=True  # Copy/link images
+    )
+
+
 def main():
     # main_labelme_to_coco()
-    main_labelme_to_yolo()
+    # main_labelme_to_yolo()
+    main_labelme_to_voc()
+    pass
 
 
 if __name__ == "__main__":
