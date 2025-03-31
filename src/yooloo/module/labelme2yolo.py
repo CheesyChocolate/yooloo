@@ -72,10 +72,11 @@ def convert_labelme_to_yolov8(
         f.write(f"path: {yaml_content['path']}\n")
         f.write(f"train: {yaml_content['train']}\n")
         f.write(f"val: {yaml_content['val']}\n")
-        f.write(f"nc: {yaml_content['nc']}\n")
+        f.write(f"test:\n\n")  # TODO: Empty test. for now!!!
+
         f.write("names:\n")
-        for cat in categories:
-            f.write(f"  - '{cat}'\n")
+        for i, cat in enumerate(categories):
+            f.write(f"    {i}: {cat}\n")
 
     # Randomly split files into train and val sets
     random.shuffle(labelme_json_files)
