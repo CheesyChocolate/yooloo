@@ -5,20 +5,16 @@ from yooloo.module.labelme2voc import convert_labelme_to_voc
 
 def main_labelme_to_coco():
     # Convert all LabelMe files to COCO format
-    result = convert_labelme_to_coco(
+    convert_labelme_to_coco(
         labelme_dir="data/selected-rectangle/labelme",
-        coco_dir="data/selected-rectangle/coco",
-    )
-    print(
-        f"Converted {len(result['images'])} images with {len(result['annotations'])} annotations"
+        output_dir="data/selected-rectangle/coco",
+        train_val_ratio=0.8,  # 80% train, 20% val
     )
 
-    result = convert_labelme_to_coco(
+    convert_labelme_to_coco(
         labelme_dir="data/selected-polygons/labelme",
-        coco_dir="data/selected-polygons/coco",
-    )
-    print(
-        f"Converted {len(result['images'])} images with {len(result['annotations'])} annotations"
+        output_dir="data/selected-polygons/coco",
+        train_val_ratio=0.8,  # 80% train, 20% val
     )
 
 
@@ -47,14 +43,14 @@ def main_labelme_to_yolo():
 
 def main_labelme_to_voc():
     # Convert all LabelMe files to Pascal VOC format
-    stats = convert_labelme_to_voc(
+    convert_labelme_to_voc(
         labelme_dir="data/selected-rectangle/labelme",
         output_dir="data/selected-rectangle/voc",
         train_ratio=0.8,  # 80% train, 20% val
         # copy_images=True  # Copy/link images
     )
 
-    stats = convert_labelme_to_voc(
+    convert_labelme_to_voc(
         labelme_dir="data/selected-polygons/labelme",
         output_dir="data/selected-polygons/voc",
         train_ratio=0.8,  # 80% train, 20% val
@@ -65,7 +61,7 @@ def main_labelme_to_voc():
 def main():
     # main_labelme_to_coco()
     # main_labelme_to_yolo()
-    main_labelme_to_voc()
+    # main_labelme_to_voc()
     pass
 
 

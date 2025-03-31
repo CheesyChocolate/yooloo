@@ -1,34 +1,48 @@
-# TODO: function to train test validation split
-
 import os
 import json
+import glob
+import shutil
+import cv2
 import numpy as np
-from glob import glob
+from tqdm import tqdm
+import random
+from typing import Dict, List, Tuple
 from datetime import datetime
-from typing import List, Optional, Dict, Any
 
 
-def convert_labelme_to_coco(
-    labelme_dir: str, coco_dir: str, categories: Optional[List[str]] = None
-) -> Dict[str, Any]:
+def create_coco_directory_structure(output_dir: str) -> Dict[str, str]:
     """
-    Convert LabelMe annotation format to COCO annotation format
+    Create the basic COCO directory structure.
 
     Args:
-        labelme_dir (str): Directory containing LabelMe JSON files
-        coco_dir (str): Directory where COCO format JSON will be saved
-        categories (list, optional): List of category names. If None, categories will be extracted from LabelMe files
+        output_dir: base directory for the COCO dataset
 
     Returns:
-        Dict[str, Any]: The COCO format data structure that was saved
+        Dictionary with paths to directories
     """
-    # Create coco directory if it doesn't exist
-    os.makedirs(coco_dir, exist_ok=True)
 
-    # Initialize COCO format structure
-    coco_format = {
+    annotations_dir = os.path.join(output_dir, "annotations")
+    train_dir = os.path.join(output_dir, "train")
+    val_dir = os.path.join(output_dir, "val")
+
+    os.makedirs(annotations_dir, exist_ok=True)
+    os.makedirs(train_dir, exist_ok=True)
+    os.makedirs(val_dir, exist_ok=True)
+
+    paths = {
+        "annotations_dir": annotations_dir,
+        "train_dir": train_dir,
+        "val_dir": val_dir,
+    }
+
+    return paths
+
+
+def create_base_coco_structure() -> Dict:
+    """Create base COCO JSON structure."""
+    return {
         "info": {
-            "description": "Dataset converted from LabelMe format to COCO format",
+            "description": "Dataset converted from labelme format to COCO format",
             "url": "",
             "version": "1.0",
             "year": datetime.now().year,
@@ -41,134 +55,191 @@ def convert_labelme_to_coco(
         "categories": [],
     }
 
-    # Find all labelme JSON files
-    labelme_json_files = sorted(glob(os.path.join(labelme_dir, "*.json")))
-    if len(labelme_json_files) == 0:
-        print(f"No JSON files found in {labelme_dir}")
-        return coco_format
 
-    # If no categories provided, collect them from the files
-    if not categories:
-        categories_set = set()
-        for labelme_file in labelme_json_files:
-            with open(labelme_file, "r") as f:
-                labelme_data = json.load(f)
-                for shape in labelme_data.get("shapes", []):
-                    categories_set.add(shape["label"])
-        categories = sorted(list(categories_set))
+def collect_categories(
+        json_files: List[str]) -> Tuple[Dict[str, int], List[Dict]]:
+    """
+    Collect all category names from labelme files and assign IDs.
 
-    # Create category entries for COCO format
-    for i, category_name in enumerate(categories, 1):
-        coco_format["categories"].append(
-            # TODO: correctly support supercategories
-            {"id": i, "name": category_name, "supercategory": "none"}
-        )
+    Args:
+        json_files: List of paths to labelme JSON files
 
-    # Create category ID lookup
-    category_id_map = {cat["name"]: cat["id"] for cat in coco_format["categories"]}
+    Returns:
+        Tuple of (category_id_map, categories_list)
+    """
+    category_id_map = {}
+    categories = []
+    category_id = 1
 
-    # Process each LabelMe file
-    image_id = 1
-    annotation_id = 1
-
-    for labelme_file in labelme_json_files:
-        with open(labelme_file, "r") as f:
+    print("Collecting categories...")
+    for json_file in tqdm(json_files):
+        with open(json_file, "r") as f:
             labelme_data = json.load(f)
 
-        # Get image info
-        image_filename = os.path.basename(
-            labelme_data.get("imagePath", labelme_file.replace(".json", ".jpg"))
-        )
-        image_filename = os.path.join(labelme_dir, image_filename)
-        image_width = labelme_data.get("imageWidth", 0)
-        image_height = labelme_data.get("imageHeight", 0)
-
-        # Check if image dimensions are available directly
-        if image_width == 0 or image_height == 0:
-            if "imageData" in labelme_data and labelme_data["imageData"] is not None:
-                # Could extract dimensions from imageData if needed
-                pass
-            else:
-                print(
-                    f"Warning: Could not determine image dimensions for {image_filename}"
-                )
-
-        # Create image entry
-        coco_format["images"].append(
-            {
-                "height": image_height,
-                "width": image_width,
-                "id": image_id,
-                "file_name": image_filename,
-                "date_captured": "",
-                "license": 1,
-                "coco_url": "",
-                "flickr_url": "",
-            }
-        )
-
-        # Process annotations
         for shape in labelme_data.get("shapes", []):
-            label = shape.get("label", "")
-            shape_type = shape.get("shape_type", "polygon")
+            label = shape.get("label")
+            if label and label not in category_id_map:
+                category_id_map[label] = category_id
+                categories.append({
+                    "supercategory": "none",
+                    "id": category_id,
+                    "name": label,
+                })
+                category_id += 1
+
+    return category_id_map, categories
+
+
+def calculate_polygon_area(points):
+    """Calculate the area of a polygon using the Shoelace formula."""
+    x = [p[0] for p in points]
+    y = [p[1] for p in points]
+
+    return 0.5 * abs(
+        sum(x[i] * y[i + 1] - x[i + 1] * y[i]
+            for i in range(len(points) - 1)) + x[-1] * y[0] - x[0] * y[-1])
+
+
+def process_json_files(
+    json_files: List[str],
+    labelme_dir: str,
+    image_dir: str,     # TODO: pass output dir instead, so it can be use for file_name
+    category_id_map: Dict[str, int],
+    start_ann_id: int = 1,
+) -> Dict:
+    """
+    Process JSON files and copy images to the output directory.
+
+    Args:
+        json_files: List of JSON files to process
+        labelme_dir: Directory containing labelme files
+        image_dir: Directory to save images (train or val)
+        category_id_map: Mapping of category names to IDs
+        start_ann_id: Starting annotation ID
+
+    Returns:
+        COCO data dictionary with images and annotations
+    """
+
+    coco_data = create_base_coco_structure()
+    coco_data["categories"] = [{
+        "supercategory": "none",    # TODO: correctly support supercategories
+        "id": cat_id,
+        "name": cat_name
+    } for cat_name, cat_id in category_id_map.items()]
+
+    category_coco_data = {
+        cat_name: create_base_coco_structure()
+        for cat_name in category_id_map.keys()
+    }
+
+    for cat_name, cat_id in category_id_map.items():
+        category_coco_data[cat_name]["categories"] = [{
+            "supercategory": "none",
+            "id": cat_id,
+            "name": cat_name
+        }]
+
+    ann_id = start_ann_id
+
+    category_images = {cat_name: set() for cat_name in category_id_map.keys()}
+
+    print(f"Processing {len(json_files)} files...")
+    for img_id, json_file in enumerate(tqdm(json_files), 1):
+        with open(json_file, "r") as f:
+            labelme_data = json.load(f)
+
+        image_path = labelme_data.get("imagePath", "")
+        if not image_path:
+            base_filename = os.path.splitext(os.path.basename(json_file))[0]
+            for ext in [".jpg", ".jpeg", ".png"]:
+                potential_path = os.path.join(labelme_dir, base_filename + ext)
+                if os.path.exists(potential_path):
+                    image_path = base_filename + ext
+                    break
+
+        source_image = os.path.join(labelme_dir, image_path)
+        if not os.path.exists(source_image):
+            print(f"Warning: Image file not found for {json_file}")
+            continue
+
+        original_filename = os.path.basename(image_path)
+        target_image = os.path.join(image_dir, original_filename)
+
+        shutil.copy(source_image, target_image)
+
+        relative_path = os.path.join(os.path.basename(image_dir),
+                                     original_filename)
+
+        if "imageWidth" in labelme_data and "imageHeight" in labelme_data:
+            img_width = labelme_data["imageWidth"]
+            img_height = labelme_data["imageHeight"]
+        else:
+            img = cv2.imread(source_image)
+            img_height, img_width = img.shape[:2]
+
+        image_info = {
+            "id": img_id,
+            "width": img_width,
+            "height": img_height,
+            "file_name": relative_path,
+            "license": 1,
+            "flickr_url": "",
+            "coco_url": "",
+            "date_captured": "",
+        }
+
+        coco_data["images"].append(image_info)
+
+        image_categories = set()
+
+        for shape in labelme_data.get("shapes", []):
+            label = shape.get("label")
+            shape_type = shape.get("shape_type")
             points = shape.get("points", [])
 
-            # Skip if the category is not in our list
             if label not in category_id_map:
-                print(
-                    f"Warning: Label '{label}' not found in categories list. Skipping..."
-                )
                 continue
 
-            # Convert to COCO format
-            if shape_type == "polygon":
-                # Flatten points for COCO format
-                segmentation = [np.array(points).flatten().tolist()]
+            image_categories.add(label)
 
-                # Calculate bounding box
-                x_coords = [p[0] for p in points]
-                y_coords = [p[1] for p in points]
-                x_min = min(x_coords)
-                y_min = min(y_coords)
+            if shape_type == "polygon":
+                segmentation = [coord for point in points for coord in point]
+
+                x_coords = [point[0] for point in points]
+                y_coords = [point[1] for point in points]
+                x_min, y_min = min(x_coords), min(y_coords)
                 width = max(x_coords) - x_min
                 height = max(y_coords) - y_min
 
-                # Calculate area using shoelace formula (polygon area)
-                area = 0.0
-                for i in range(len(points)):
-                    j = (i + 1) % len(points)
-                    area += points[i][0] * points[j][1]
-                    area -= points[j][0] * points[i][1]
-                area = abs(area) / 2.0
+                area = calculate_polygon_area(points)
 
             elif shape_type == "rectangle":
-                # Rectangle: points contains [top-left, bottom-right]
                 x1, y1 = points[0]
                 x2, y2 = points[1]
-                # Ensure correct order
-                x_min, x_max = min(x1, x2), max(x1, x2)
-                y_min, y_max = min(y1, y2), max(y1, y2)
-                width = x_max - x_min
-                height = y_max - y_min
+                x_min, y_min = min(x1, x2), min(y1, y2)
+                width, height = abs(x2 - x1), abs(y2 - y1)
 
-                # For COCO, convert rectangle to polygon
-                segmentation = [
-                    [x_min, y_min, x_max, y_min, x_max, y_max, x_min, y_max]
-                ]
-
-                # Calculate area
                 area = width * height
 
+                segmentation = [
+                    x_min,
+                    y_min,
+                    x_min + width,
+                    y_min,
+                    x_min + width,
+                    y_min + height,
+                    x_min,
+                    y_min + height,
+                ]
+
             elif shape_type == "circle":
-                # Circle: points contains [center, point on perimeter]
                 center_x, center_y = points[0]
                 radius_point_x, radius_point_y = points[1]
-                radius = np.sqrt(
-                    (center_x - radius_point_x) ** 2 + (center_y - radius_point_y) ** 2
-                )
+                radius = np.sqrt((radius_point_x - center_x)**2 +
+                                 (radius_point_y - center_y)**2)
 
-                # Approximate circle with 20-point polygon
-                num_points = 20
+                num_points = 36
                 polygon_points = []
                 for i in range(num_points):
                     angle = 2 * np.pi * i / num_points
@@ -176,47 +247,123 @@ def convert_labelme_to_coco(
                     y = center_y + radius * np.sin(angle)
                     polygon_points.extend([x, y])
 
-                segmentation = [polygon_points]
+                x_min, y_min = center_x - radius, center_y - radius
+                width, height = 2 * radius, 2 * radius
 
-                # Calculate bounding box
-                x_min = center_x - radius
-                y_min = center_y - radius
-                width = 2 * radius
-                height = 2 * radius
-
-                # Calculate area
                 area = np.pi * (radius**2)
+                segmentation = polygon_points
 
             else:
                 # Skip unsupported shape types
                 print(f"Warning: Shape type '{shape_type}' not supported. Skipping...")
                 continue
 
-            # Create annotation entry
-            coco_format["annotations"].append(
-                {
-                    "iscrowd": 0,
-                    "image_id": image_id,
-                    "bbox": [x_min, y_min, width, height],
-                    "segmentation": segmentation,
-                    "category_id": category_id_map[label],
-                    "id": annotation_id,
-                    "area": area,
-                }
-            )
+            annotation = {
+                "id": ann_id,
+                "image_id": img_id,
+                "category_id": category_id_map[label],
+                "segmentation": [segmentation],
+                "area": area,
+                "bbox": [x_min, y_min, width, height],
+                "iscrowd": 0,
+            }
 
-            annotation_id += 1
+            coco_data["annotations"].append(annotation)
 
-        image_id += 1
+            category_coco_data[label]["annotations"].append(annotation.copy())
 
-    # Save COCO format JSON
-    coco_json_path = os.path.join(coco_dir, "annotations.json")
-    with open(coco_json_path, "w") as f:
-        json.dump(coco_format, f, indent=2)
+            ann_id += 1
 
+        for cat_name in image_categories:
+            category_images[cat_name].add(img_id)
+            category_coco_data[cat_name]["images"].append(image_info.copy())
+
+    return coco_data, category_coco_data, category_images
+
+
+def convert_labelme_to_coco(labelme_dir: str,
+                            output_dir: str,
+                            train_val_ratio: float = 0.8) -> None:
+    """
+    Convert labelme annotations to COCO format with train/val split.
+
+    Args:
+        labelme_dir: Directory containing labelme JSON files
+        output_dir: Directory to save the COCO dataset
+        train_val_ratio: Ratio of data to use for training (0.0-1.0)
+    """
+    if train_val_ratio <= 0.0 or train_val_ratio >= 1.0:
+        raise ValueError("train_val_ratio must be between 0.0 and 1.0")
+
+    paths = create_coco_directory_structure(output_dir)
+
+    json_files = glob.glob(os.path.join(labelme_dir, "*.json"))
+    if not json_files:
+        raise FileNotFoundError(f"No JSON files found in {labelme_dir}")
+
+    print(f"Found {len(json_files)} labelme JSON files")
+
+    category_id_map, categories = collect_categories(json_files)
     print(
-        f"Conversion complete: {len(labelme_json_files)} LabelMe files converted to COCO format"
+        f"Found {len(category_id_map)} categories: {', '.join(category_id_map.keys())}"
     )
-    print(f"COCO JSON file saved at: {coco_json_path}")
 
-    return coco_format
+    random.shuffle(json_files)
+    split_index = int(len(json_files) * train_val_ratio)
+    train_files = json_files[:split_index]
+    val_files = json_files[split_index:]
+
+    print("Processing training set...")
+    train_data, train_category_data, train_category_images = process_json_files(
+        train_files, labelme_dir, paths["train_dir"], category_id_map)
+
+    print("Processing validation set...")
+    val_data, val_category_data, val_category_images = process_json_files(
+        val_files,
+        labelme_dir,
+        paths["val_dir"],
+        category_id_map,
+        start_ann_id=len(train_data["annotations"]) + 1,
+    )
+
+    annotations_dir = paths["annotations_dir"]
+
+    print("Saving annotation files...")
+
+    with open(os.path.join(annotations_dir, "instances_train.json"), "w") as f:
+        json.dump(train_data, f, indent=2)
+
+    with open(os.path.join(annotations_dir, "instances_val.json"), "w") as f:
+        json.dump(val_data, f, indent=2)
+
+    for category in category_id_map.keys():
+        clean_cat = category.replace(" ", "_").lower()
+
+        train_cat_file = os.path.join(annotations_dir,
+                                      f"{clean_cat}_train.json")
+        with open(train_cat_file, "w") as f:
+            json.dump(train_category_data[category], f, indent=2)
+
+        val_cat_file = os.path.join(annotations_dir, f"{clean_cat}_val.json")
+        with open(val_cat_file, "w") as f:
+            json.dump(val_category_data[category], f, indent=2)
+
+    print(f"Conversion complete!")
+    print(
+        f"Train set: {len(train_data['images'])} images, {len(train_data['annotations'])} annotations"
+    )
+    print(
+        f"Val set: {len(val_data['images'])} images, {len(val_data['annotations'])} annotations"
+    )
+
+    print("\nCategory statistics:")
+    for cat_name in category_id_map.keys():
+        train_count = len(train_category_data[cat_name]["annotations"])
+        val_count = len(val_category_data[cat_name]["annotations"])
+        train_img_count = len(train_category_images[cat_name])
+        val_img_count = len(val_category_images[cat_name])
+        print(
+            f"  - {cat_name}: {train_count} train annotations in {train_img_count} images, "
+            f"{val_count} val annotations in {val_img_count} images")
+
+    print(f"\nCOCO dataset created at {output_dir}")
