@@ -12,8 +12,10 @@
 \usepackage{longtable}
 \usepackage{textgreek}
 \usepackage{newtxtext} % needed when using XeLaTeX
+\usepackage{listings}
+\usepackage{dirtree}
 
-\title{<++>}
+\title{Labelme Converter}
 \author{<++>}
 
 \pagenumbering{gobble}
@@ -31,6 +33,162 @@
 
 \maketitle
 
-<++>
+\section*{Introduction}
+
+\paragraph{}Labelme is a graphical image annotation tool that enables users to
+label objects in images. This tool creates a JSON file for each image, which
+contains the annotations. The output of dataset annotated with Labelme shown
+in the following example:
+
+\vspace{0.5cm}
+
+\dirtree{%
+	.1 labelme\_dataset/.
+	.2 img1.json.
+	.2 img1.jpg.
+	.2 img2.json.
+	.2 img2.png.
+	.2 subdirectory/.
+	.3 img3.json.
+	.3 img3.jpg.
+	.2 ...
+}
+
+This structure is enriched with information but it is not suitable for
+training a neural network. The Labelme converter is a tool that converts the
+Labelme dataset into a format that is compatible with the training process of
+a neural network.
+
+\section*{Converter}
+
+\paragraph{}The Labelme converter is a Python script that takes the Labelme
+dataset as input and generates a new dataset in a different format. As of
+writing this report, the converter is capable of converting the dataset into
+the following formats:
+
+\begin{itemize}
+	\item COCO
+	\item YOLO
+	\item Pascal VOC
+\end{itemize}
+
+\subsection*{labelme2coco module}
+
+\paragraph{}The labelme2coco module takes the directory of the Labelme
+dataset as input and generates a directory with the COCO dataset. The
+module supports splitting the dataset into training and validation sets. The
+split is done randomly, and the user can specify the ratio of the split. The
+output directory will contain the following structure:
+
+\vspace{0.5cm}
+
+\dirtree{%
+	.1 coco\_dataset/.
+	.2 annotations/.
+	.3 instances\_train.json.
+	.3 instances\_val.json.
+	.3 class1\_train.json.
+	.3 class1\_val.json.
+	.3 \ldots.
+	.2 train/.
+	.3 000000000001.jpg.
+	.3 000000000002.jpg.
+	.3 \ldots.
+	.2 val/.
+	.3 000000000501.jpg.
+	.3 000000000502.jpg.
+	.3 \ldots.
+}
+
+\paragraph{}lorem ipsum dolor sit amet, consectetur adipiscing elit. Donec
+tincidunt, nisl eget bibendum sodales, augue ante facilisis nunc, nec
+mollis nunc nisl sit amet erat.
+
+\subsection*{labelme2yolo module}
+
+\paragraph{}The labelme2yolo module takes the directory of the Labelme
+dataset as input and generates a directory with the YOLO dataset. The
+module supports splitting the dataset into training and validation sets. The
+split is done randomly, and the user can specify the ratio of the split. The
+output directory will contain the following structure:
+
+\vspace{0.5cm}
+
+\dirtree{%
+	.1 yolov8\_dataset/.
+	.2 data.yaml.
+	.2 images/.
+	.3 train/.
+	.4 img001.jpg.
+	.4 \ldots.
+	.3 val/.
+	.4 img101.jpg.
+	.4 \ldots.
+	.2 labels/.
+	.3 train/.
+	.4 img001.txt.
+	.4 \ldots.
+	.3 val/.
+	.4 img101.txt.
+	.4 \ldots.
+}
+
+\paragraph{}lorem ipsum dolor sit amet, consectetur adipiscing elit. Donec
+tincidunt, nisl eget bibendum sodales, augue ante facilisis nunc, nec
+mollis nunc nisl sit amet erat.
+
+\subsection*{labelme2voc module}
+
+\paragraph{}The labelme2voc module takes the directory of the Labelme
+dataset as input and generates a directory with the Pascal VOC dataset. The
+module supports splitting the dataset into training and validation sets. The
+split is done randomly, and the user can specify the ratio of the split. The
+output directory will contain the following structure:
+
+\vspace{0.5cm}
+
+\dirtree{%
+	.1 VOCdevkit/.
+	.2 VOC/.
+	.3 Annotations/.
+	.4 000001.xml.
+	.4 000002.xml.
+	.4 \ldots.
+	.3 ImageSets/.
+	.4 Action/.
+	.5 train.txt.
+	.5 trainval.txt.
+	.5 val.txt.
+	.5 Action-specific files (jump\_train.txt, etc).
+	.4 Layout/.
+	.5 train.txt.
+	.5 trainval.txt.
+	.5 val.txt.
+	.4 Main/.
+	.5 train.txt.
+	.5 trainval.txt.
+	.5 val.txt.
+	.5 class-specific files (cat\_train.txt, etc).
+	.4 Segmentation/.
+	.5 train.txt.
+	.5 trainval.txt.
+	.5 val.txt.
+	.3 JPEGImages/.
+	.4 000001.jpg.
+	.4 000002.jpg.
+	.4 \ldots.
+	.3 SegmentationClass/.
+	.4 000001.png.
+	.4 000002.png.
+	.4 \ldots.
+	.3 SegmentationObject/.
+	.4 000001.png.
+	.4 000002.png.
+	.4 \ldots.
+}
+
+\paragraph{}lorem ipsum dolor sit amet, consectetur adipiscing elit. Donec
+tincidunt, nisl eget bibendum sodales, augue ante facilisis nunc, nec
+mollis nunc nisl sit amet erat.
 
 \end{document}
