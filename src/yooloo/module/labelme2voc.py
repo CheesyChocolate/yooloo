@@ -1,3 +1,5 @@
+# TODO: properly support label classes in the corresponding text files
+
 import os
 import json
 import numpy as np
