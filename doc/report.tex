@@ -13,7 +13,38 @@
 \usepackage{textgreek}
 \usepackage{newtxtext} % needed when using XeLaTeX
 \usepackage{listings}
+\usepackage{xcolor}
 \usepackage{dirtree}
+
+\definecolor{jsondelim}{RGB}{20,105,176}
+\definecolor{jsonkey}{RGB}{173,20,87}
+\definecolor{jsonstring}{RGB}{56,142,60}
+\definecolor{jsonnumber}{RGB}{179,97,0}
+\definecolor{jsonbackground}{RGB}{248,248,248}
+
+% Define JSON style
+\lstdefinestyle{json}{
+    basicstyle=\ttfamily\normalsize,
+    showstringspaces=false,
+    breaklines=true,
+    frame=single,
+    backgroundcolor=\color{jsonbackground},
+    literate=
+    *{:}{{{\color{jsondelim}{:}}}}{1}
+     {,}{{{\color{jsondelim}{,}}}}{1}
+     {\{}{{{\color{jsondelim}{\{}}}}{1}
+     {\}}{{{\color{jsondelim}{\}}}}}{1}
+     {[}{{{\color{jsondelim}{[}}}}{1}
+     {]}{{{\color{jsondelim}{]}}}}{1}
+     {"}{{{\color{jsonstring}{"}}}}{1}
+     {true}{{{\color{jsonnumber}{true}}}}{4}
+     {false}{{{\color{jsonnumber}{false}}}}{5}
+     {null}{{{\color{jsonnumber}{null}}}}{4},
+    identifierstyle=\color{jsonkey},
+    stringstyle=\color{jsonstring},
+    numberstyle=\color{jsonnumber},
+    tabsize=2
+}
 
 \title{Labelme Converter}
 \author{<++>}
@@ -100,9 +131,49 @@ output directory will contain the following structure:
 	.3 \ldots.
 }
 
-\paragraph{}lorem ipsum dolor sit amet, consectetur adipiscing elit. Donec
-tincidunt, nisl eget bibendum sodales, augue ante facilisis nunc, nec
-mollis nunc nisl sit amet erat.
+\paragraph{}The JSON files in the annotations directory have some required
+fields which should derive from the Labelme dataset. The minimum required
+fields for the COCO format are the following:
+
+\vspace{0.5cm}
+
+\begin{lstlisting}[style=json, caption={Example COCO format JSON file}]
+{
+	"images": [
+		{
+			"id": 1,
+			"width": 800,
+			"height": 600
+			"file_name": "000000000001.jpg",
+		},
+		...
+	],
+	"annotations": [
+		{
+			"id": 1,
+			"image_id": 1,
+			"category_id": 1,
+			"segmentation": [[x1, y1, x2, y2, ...]],
+			"area": 123.45,
+			"bbox": [x, y, width, height]
+			"iscrowd": 0,
+		},
+		...
+	],
+	"categories": [
+		{
+			"supercategory": "superclass1"
+			"id": 1,
+			"name": "class1"
+		}
+	]
+}
+\end{lstlisting}
+
+\paragraph{}Almost all fields can be derived from the Labelme dataset. The
+fields "supercategory", and "iscrowd" can be set to default values. The
+"area" and "bbox" fields can be calculated from the segmentation
+coordinates based on the shape type.
 
 \subsection*{labelme2yolo module}
 
@@ -133,9 +204,36 @@ output directory will contain the following structure:
 	.4 \ldots.
 }
 
-\paragraph{}lorem ipsum dolor sit amet, consectetur adipiscing elit. Donec
-tincidunt, nisl eget bibendum sodales, augue ante facilisis nunc, nec
-mollis nunc nisl sit amet erat.
+\paragraph{}The data.yaml file contains the following fields:
+
+\vspace{0.5cm}
+
+\begin{lstlisting}[style=json, caption={Example YOLO format data.yaml file}]
+path: absolute/path/to/yolov8_dataset
+train: images/train
+val: images/val
+test:
+
+names:
+	0: class1
+	1: class2
+	2: class3
+	...
+\end{lstlisting}
+
+The text files contains the annotations for each image. The format
+of the text files is as follows:
+
+\vspace{0.5cm}
+
+\begin{lstlisting}[style=json, caption={Example YOLO format text file}]
+	class_id1 x_center y_center width height
+	class_id2 x_center y_center width height
+	...
+\end{lstlisting}
+
+These values should ne calculated based on the shape type and the
+coordinates of the shape.
 
 \subsection*{labelme2voc module}
 
@@ -187,8 +285,21 @@ output directory will contain the following structure:
 	.4 \ldots.
 }
 
-\paragraph{}lorem ipsum dolor sit amet, consectetur adipiscing elit. Donec
-tincidunt, nisl eget bibendum sodales, augue ante facilisis nunc, nec
-mollis nunc nisl sit amet erat.
+\paragraph{}The text files contains the names of the images files. The
+format of the text files is as follows:
+
+\vspace{0.5cm}
+
+\begin{lstlisting}[style=json, caption={Example Pascal VOC format text file}]
+000001.jpg
+000002.jpg
+...
+\end{lstlisting}
+
+The XML files contains the annotations for each image. The main challenge in
+transforming the Labelme dataset to the Pascal VOC format is to convert the
+segmentation coordinates to the bounding box coordinates for polygon and
+circle shapes, and to achieve this, we can take the minimum and maximum
+coordinates of the shape.
 
 \end{document}
