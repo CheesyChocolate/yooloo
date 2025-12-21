@@ -177,6 +177,18 @@ converter. For each subset, the original image files and their corresponding
 generated JSON files were placed in the same directory. The input directory
 structure for the experiments is shown in Fig. \ref{fig:input_structure}.
 
+\subsection{Validation}
+
+The correctness of the data conversion process for each target format was
+primarily validated through visual inspection. This involved meticulously
+examining the generated JSON, XML, and text files, as well as the segmentation
+masks, and comparing them against the original Labelme annotations and source
+images. Where applicable, custom scripts were utilized to overlay the converted
+bounding boxes and segmentation masks onto the original images, ensuring
+pixel-level accuracy and proper alignment of all annotations. This rigorous
+visual verification confirmed the integrity and fidelity of the converted
+datasets.
+
 \begin{figure}[htbp]
 \dirtree{%
     .1 data/.
