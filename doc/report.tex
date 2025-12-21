@@ -23,12 +23,13 @@
 
 % Define JSON style
 \lstdefinestyle{json}{
-    basicstyle=\ttfamily\normalsize,
+    basicstyle=\ttfamily\footnotesize,
     showstringspaces=false,
     breaklines=true,
     frame=single,
     backgroundcolor=\color{jsonbackground},
     captionpos=b,
+    float,
     literate=
     *{:}{{{\color{jsondelim}{:}}}}{1}
      {,}{{{\color{jsondelim}{,}}}}{1}
@@ -64,8 +65,7 @@ label objects in images. This tool creates a JSON file for each image, which
 contains the annotations. The output of dataset annotated with Labelme shown
 in the following example:
 
-\vspace{0.5cm}
-
+\begin{figure}[htbp]
 \dirtree{%
 	.1 labelme\_dataset/.
 	.2 img1.json.
@@ -75,8 +75,10 @@ in the following example:
 	.2 subdirectory/.
 	.3 img3.json.
 	.3 img3.jpg.
-	.2 ...
+	.2 \ldots.
 }
+\caption{Structure of a Labelme dataset}
+\end{figure}
 
 This structure is enriched with information but it is not suitable for
 training a neural network. The Labelme converter is a tool that converts the
@@ -104,8 +106,7 @@ module supports splitting the dataset into training and validation sets. The
 split is done randomly, and the user can specify the ratio of the split. The
 output directory will contain the following structure:
 
-\vspace{0.5cm}
-
+\begin{figure}[htbp]
 \dirtree{%
 	.1 coco\_dataset/.
 	.2 annotations/.
@@ -123,6 +124,8 @@ output directory will contain the following structure:
 	.3 000000000502.jpg.
 	.3 \ldots.
 }
+\caption{Structure of the generated COCO dataset}
+\end{figure}
 
 The JSON files in the annotations directory have some required
 fields which should derive from the Labelme dataset. The minimum required
@@ -176,8 +179,7 @@ module supports splitting the dataset into training and validation sets. The
 split is done randomly, and the user can specify the ratio of the split. The
 output directory will contain the following structure:
 
-\vspace{0.5cm}
-
+\begin{figure}[htbp]
 \dirtree{%
 	.1 yolov8\_dataset/.
 	.2 data.yaml.
@@ -196,6 +198,8 @@ output directory will contain the following structure:
 	.4 img101.txt.
 	.4 \ldots.
 }
+\caption{Structure of the generated YOLO dataset}
+\end{figure}
 
 The data.yaml file contains the following fields:
 
@@ -236,8 +240,7 @@ module supports splitting the dataset into training and validation sets. The
 split is done randomly, and the user can specify the ratio of the split. The
 output directory will contain the following structure:
 
-\vspace{0.5cm}
-
+\begin{figure}[htbp]
 \dirtree{%
 	.1 VOCdevkit/.
 	.2 VOC/.
@@ -277,6 +280,8 @@ output directory will contain the following structure:
 	.4 000002.png.
 	.4 \ldots.
 }
+\caption{Structure of the generated Pascal VOC dataset}
+\end{figure}
 
 The text files contains the names of the images files. The
 format of the text files is as follows:
