@@ -14,6 +14,7 @@
 \usepackage{listings}
 \usepackage{xcolor}
 \usepackage{dirtree}
+\usepackage{graphicx}
 
 \definecolor{jsondelim}{RGB}{20,105,176}
 \definecolor{jsonkey}{RGB}{173,20,87}
@@ -101,6 +102,80 @@ The goal of the Labelme converter is to bridge this gap. It serves as a
 comprehensive tool that parses the raw Labelme dataset and transforms it into a
 format ready for the training process of a neural network, thereby streamlining
 the workflow from data annotation to model training.
+
+\section{Dataset Preparation}
+
+To demonstrate the capabilities of the Labelme converter, we prepared a
+small-scale dataset derived from the Clothing Co-Parsing (CCP) Dataset,
+available on Kaggle\footnote{\url{https://www.kaggle.com/datasets/balraj98/clothing-coparsing-dataset}}.
+This dataset typically provides high-resolution images of people in various
+poses and environments, originally annotated with pixel-level labels for 59
+different clothing tags. It was chosen for its variety of human subjects and
+complex boundaries, providing a rigorous test bed for both bounding box and
+fine-grained segmentation tasks.
+
+\subsection{Data Selection and Annotation}
+
+From the original dataset, a subset of 20 images was selected. This size was
+deemed sufficient to validate the tool's functionality across different
+annotation types without the computational overhead of a full-scale dataset.
+
+The annotation process was carried out using the Labelme graphical interface.
+To rigorously test the converter's handling of different shape types, the
+selected images were annotated in two separate passes, creating two distinct
+subsets:
+
+\begin{itemize}
+    \item \textbf{Rectangle Subset:} Objects were annotated using bounding
+	    boxes (rectangles). This is typical for object detection tasks
+		(e.g., YOLO).
+    \item \textbf{Polygon Subset:} Objects were annotated using polygonal
+	    chains to outline precise boundaries. This is essential for
+		instance segmentation tasks (e.g., Mask R-CNN).
+\end{itemize}
+
+For simplicity and clarity, annotations were restricted to a single class:
+"head". This allows for easy visual verification of the conversion results.
+
+\subsection{Input Directory Structure}
+
+The annotated data was organized into a directory structure compatible with the
+converter. For each subset, the original image files and their corresponding
+generated JSON files were placed in the same directory. The structure is as
+follows:
+
+\begin{figure}[htbp]
+\dirtree{%
+    .1 data/.
+    .2 selected-rectangle/.
+    .3 labelme/.
+    .4 img\_0012.jpg.
+    .4 img\_0012.json.
+    .4 \ldots.
+    .2 selected-polygons/.
+    .3 labelme/.
+    .4 img\_0012.jpg.
+    .4 img\_0012.json.
+    .4 \ldots.
+}
+\caption{Input directory structure for the experiments}
+\label{fig:input_structure}
+\end{figure}
+
+\subsection{Annotation Visualization}
+
+Visual examples of the annotations are provided to illustrate the difference
+between the two subsets. Fig. \ref{fig:annot_vis} shows
+the annotation environment and the resulting segmentation masks for the same
+image in both rectangle and polygon modes.
+
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=0.45\linewidth]{figs/img_0012-rectangle.png}
+    \includegraphics[width=0.45\linewidth]{figs/img_0012-polygon.png}
+    \caption{Visual comparison of rectangle (left) and polygon (right) annotations in Labelme.}
+    \label{fig:annot_vis}
+\end{figure}
 
 \section{Converter}
 
