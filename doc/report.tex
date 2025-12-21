@@ -1,6 +1,5 @@
-\documentclass[12pt]{article}
+\documentclass[conference]{IEEEtran}
 
-\usepackage[margin=.50in]{geometry}
 \usepackage{ot-tableau}
 \usepackage{easylist}
 \usepackage{hanging}
@@ -47,26 +46,19 @@
 }
 
 \title{Labelme Converter}
-\author{<++>}
-
-\pagenumbering{gobble}
-
-\newcommand{\linia}{\rule{\linewidth}{0.5pt}}
-
-\makeatletter
-
-\renewcommand{\maketitle}{\begin{center}
-\huge \@title\end{center}
-\linia\\
-{\large\@author\hfill\@date\\}}
+\author{\IEEEauthorblockN{Author Name}
+\IEEEauthorblockA{\textit{Department Name} \\
+\textit{Organization Name}\\
+City, Country \\
+email@domain.com}}
 
 \begin{document}
 
 \maketitle
 
-\section*{Introduction}
+\section{Introduction}
 
-\paragraph{}Labelme is a graphical image annotation tool that enables users to
+Labelme is a graphical image annotation tool that enables users to
 label objects in images. This tool creates a JSON file for each image, which
 contains the annotations. The output of dataset annotated with Labelme shown
 in the following example:
@@ -90,9 +82,9 @@ training a neural network. The Labelme converter is a tool that converts the
 Labelme dataset into a format that is compatible with the training process of
 a neural network.
 
-\section*{Converter}
+\section{Converter}
 
-\paragraph{}The Labelme converter is a Python script that takes the Labelme
+The Labelme converter is a Python script that takes the Labelme
 dataset as input and generates a new dataset in a different format. As of
 writing this report, the converter is capable of converting the dataset into
 the following formats:
@@ -103,9 +95,9 @@ the following formats:
 	\item Pascal VOC
 \end{itemize}
 
-\subsection*{labelme2coco module}
+\subsection{labelme2coco module}
 
-\paragraph{}The labelme2coco module takes the directory of the Labelme
+The labelme2coco module takes the directory of the Labelme
 dataset as input and generates a directory with the COCO dataset. The
 module supports splitting the dataset into training and validation sets. The
 split is done randomly, and the user can specify the ratio of the split. The
@@ -131,7 +123,7 @@ output directory will contain the following structure:
 	.3 \ldots.
 }
 
-\paragraph{}The JSON files in the annotations directory have some required
+The JSON files in the annotations directory have some required
 fields which should derive from the Labelme dataset. The minimum required
 fields for the COCO format are the following:
 
@@ -170,14 +162,14 @@ fields for the COCO format are the following:
 }
 \end{lstlisting}
 
-\paragraph{}Almost all fields can be derived from the Labelme dataset. The
+Almost all fields can be derived from the Labelme dataset. The
 fields "supercategory", and "iscrowd" can be set to default values. The
 "area" and "bbox" fields can be calculated from the segmentation
 coordinates based on the shape type.
 
-\subsection*{labelme2yolo module}
+\subsection{labelme2yolo module}
 
-\paragraph{}The labelme2yolo module takes the directory of the Labelme
+The labelme2yolo module takes the directory of the Labelme
 dataset as input and generates a directory with the YOLO dataset. The
 module supports splitting the dataset into training and validation sets. The
 split is done randomly, and the user can specify the ratio of the split. The
@@ -204,7 +196,7 @@ output directory will contain the following structure:
 	.4 \ldots.
 }
 
-\paragraph{}The data.yaml file contains the following fields:
+The data.yaml file contains the following fields:
 
 \vspace{0.5cm}
 
@@ -235,9 +227,9 @@ of the text files is as follows:
 These values should ne calculated based on the shape type and the
 coordinates of the shape.
 
-\subsection*{labelme2voc module}
+\subsection{labelme2voc module}
 
-\paragraph{}The labelme2voc module takes the directory of the Labelme
+The labelme2voc module takes the directory of the Labelme
 dataset as input and generates a directory with the Pascal VOC dataset. The
 module supports splitting the dataset into training and validation sets. The
 split is done randomly, and the user can specify the ratio of the split. The
@@ -285,7 +277,7 @@ output directory will contain the following structure:
 	.4 \ldots.
 }
 
-\paragraph{}The text files contains the names of the images files. The
+The text files contains the names of the images files. The
 format of the text files is as follows:
 
 \vspace{0.5cm}
