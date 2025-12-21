@@ -115,19 +115,41 @@ model-ready datasets.
 To establish a ground truth, we employed an instance-based annotation approach
 using the Labelme tool. A subset of 20 images was selected from the Clothing
 Co-Parsing (CCP) Dataset\footnote{\url{https://www.kaggle.com/datasets/balraj98/clothing-coparsing-dataset}}.
-This dataset was chosen for its high-resolution images and complex subject
-boundaries.
+This dataset was specifically chosen for its relevance to human-centric
+computer vision tasks. It features subjects in unconstrained "street style"
+environments, providing a diversity of lighting conditions, poses, and
+occlusions that are essential for evaluating the robustness of annotation and
+training pipelines.
 
-For these images, we manually labeled the "head" class. Two distinct annotation
-modes were used to rigorously test the system:
+For these images, we manually labeled the "head" class. This class was selected
+as the primary subject for two key reasons:
+
+\begin{enumerate}
+
+    \item \textbf{Demonstrative Clarity:} The human head offers a perfect
+	    balance of structural consistency and edge complexity (e.g., hair
+		details, accessories). This makes it an ideal candidate for
+		highlighting the differences between simple bounding box
+		annotations and precise polygonal segmentation.
+
+	\item \textbf{Visual Verification:} As a distinct and recognizable
+		object, annotation errors or conversion artifacts are easily
+		identifiable during the validation phase.
+
+\end{enumerate}
+
+Two distinct annotation modes were used to rigorously test the system:
 
 \begin{itemize}
+
     \item \textbf{Rectangle Mode:} Objects were bounded by rectangular boxes.
 	    This represents a coarser form of supervision, typically used for
 		object detection tasks.
-    \item \textbf{Polygon Mode:} Objects were outlined with precise polygonal
-	    chains. This represents fine-grained, pixel-level supervision
-		required for instance segmentation.
+
+	\item \textbf{Polygon Mode:} Objects were outlined with precise
+		polygonal chains. This represents fine-grained, pixel-level
+		supervision required for instance segmentation.
+
 \end{itemize}
 
 \subsection{Semi-supervised Annotation Simulation}
