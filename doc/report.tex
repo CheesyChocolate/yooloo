@@ -103,39 +103,50 @@ comprehensive tool that parses the raw Labelme dataset and transforms it into a
 format ready for the training process of a neural network, thereby streamlining
 the workflow from data annotation to model training.
 
-\section{Dataset Preparation}
+\section{Methodology and Implementation}
 
-To demonstrate the capabilities of the Labelme converter, we prepared a
-small-scale dataset derived from the Clothing Co-Parsing (CCP) Dataset,
-available on Kaggle\footnote{\url{https://www.kaggle.com/datasets/balraj98/clothing-coparsing-dataset}}.
-This dataset typically provides high-resolution images of people in various
-poses and environments, originally annotated with pixel-level labels for 59
-different clothing tags. It was chosen for its variety of human subjects and
-complex boundaries, providing a rigorous test bed for both bounding box and
-fine-grained segmentation tasks.
+This section details the workflow adopted for the project, encompassing manual
+data annotation, semi-supervised simulation, and data format conversion. The
+process was designed to demonstrate a complete pipeline from raw data to
+model-ready datasets.
 
-\subsection{Data Selection and Annotation}
+\subsection{Instance-based Annotation (Supervised)}
 
-From the original dataset, a subset of 20 images was selected. This size was
-deemed sufficient to validate the tool's functionality across different
-annotation types without the computational overhead of a full-scale dataset.
+To establish a ground truth, we employed an instance-based annotation approach
+using the Labelme tool. A subset of 20 images was selected from the Clothing
+Co-Parsing (CCP) Dataset\footnote{\url{https://www.kaggle.com/datasets/balraj98/clothing-coparsing-dataset}}.
+This dataset was chosen for its high-resolution images and complex subject
+boundaries.
 
-The annotation process was carried out using the Labelme graphical interface.
-To rigorously test the converter's handling of different shape types, the
-selected images were annotated in two separate passes, creating two distinct
-subsets:
+For these images, we manually labeled the "head" class. Two distinct annotation
+modes were used to rigorously test the system:
 
 \begin{itemize}
-    \item \textbf{Rectangle Subset:} Objects were annotated using bounding
-	    boxes (rectangles). This is typical for object detection tasks
-		(e.g., YOLO).
-    \item \textbf{Polygon Subset:} Objects were annotated using polygonal
-	    chains to outline precise boundaries. This is essential for
-		instance segmentation tasks (e.g., Mask R-CNN).
+    \item \textbf{Rectangle Mode:} Objects were bounded by rectangular boxes.
+	    This represents a coarser form of supervision, typically used for
+		object detection tasks.
+    \item \textbf{Polygon Mode:} Objects were outlined with precise polygonal
+	    chains. This represents fine-grained, pixel-level supervision
+		required for instance segmentation.
 \end{itemize}
 
-For simplicity and clarity, annotations were restricted to a single class:
-"head". This allows for easy visual verification of the conversion results.
+\subsection{Semi-supervised Annotation Simulation}
+
+To simulate a semi-supervised annotation workflow, we leveraged the initial set
+of manual annotations to automate the labeling process for the broader dataset.
+A custom Python function was developed to reuse the manually defined annotation
+logic and apply it across similar images. This approach mimics real-world
+scenarios where a small set of labeled data is used to bootstrap the annotation
+of a larger unlabeled pool, significantly reducing manual effort.
+
+\subsection{Data Conversion Workflow}
+
+The final stage of the implementation involved converting these annotated
+datasets into industry-standard formats. We developed a Python-based converter
+tool that parses the Labelme JSON outputs and systematically transforms them
+into YOLO, COCO, and Pascal VOC formats. This ensures that the data, whether
+manually labeled or semi-automatically generated, is immediately usable by
+standard deep learning frameworks.
 
 \subsection{Input Directory Structure}
 
@@ -165,9 +176,9 @@ follows:
 \subsection{Annotation Visualization}
 
 Visual examples of the annotations are provided to illustrate the difference
-between the two subsets. Fig. \ref{fig:annot_vis} shows
-the annotation environment and the resulting segmentation masks for the same
-image in both rectangle and polygon modes.
+between the two subsets. Fig. \ref{fig:annot_vis}
+shows the annotation environment and the resulting segmentation masks for the
+same image in both rectangle and polygon modes.
 
 \begin{figure}[htbp]
     \centering
