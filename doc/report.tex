@@ -228,6 +228,13 @@ ratio. The output directory structure is shown in Fig.
 \label{fig:coco_structure}
 \end{figure}
 
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=0.6\linewidth]{figs/img_0012-polygon-Segmentation.png}
+    \caption{Polygon segmentation mask preserved in COCO format.}
+    \label{fig:coco_seg}
+\end{figure}
+
 The generated JSON files adhere strictly to the COCO schema. Listing
 \ref{lst:coco_json} illustrates the key fields. Note that the
 \texttt{segmentation} field retains the polygon points, while \texttt{bbox} and
@@ -274,7 +281,7 @@ coordinates. Regardless of whether the input is a rectangle or a polygon, the
 module calculates the bounding box and converts coordinates to the range $[0,
 1]$ relative to the image dimensions.
 
-The output directory contains a \texttt{data.yaml} configuration file and
+The output directory contains a \texttt{dataset.yaml} configuration file and
 separate text files for each image, organized into train/val folders as shown
 in Fig. \ref{fig:yolo_structure}.
 
@@ -301,10 +308,10 @@ in Fig. \ref{fig:yolo_structure}.
 \label{fig:yolo_structure}
 \end{figure}
 
-The \texttt{data.yaml} file (Listing \ref{lst:yolo_yaml}) defines the dataset
-paths and class names, which is essential for training YOLO models.
+The \texttt{dataset.yaml} file (Listing \ref{lst:yolo_yaml}) defines the
+dataset paths and class names, which is essential for training YOLO models.
 
-\begin{lstlisting}[style=json, caption={Example YOLO format data.yaml file}, label={lst:yolo_yaml}]
+\begin{lstlisting}[style=json, caption={Example YOLO format dataset.yaml file}, label={lst:yolo_yaml}]
 path: absolute/path/to/yolov8_dataset
 train: images/train
 val: images/val
@@ -342,7 +349,10 @@ For segmentation, it rasterizes the polygons and rectangles into pixel-wise
 masks (PNG images), saved in the \texttt{SegmentationClass} and
 \texttt{SegmentationObject} directories.
 
-The directory structure is shown in Fig. \ref{fig:voc_structure}.
+The output directory is populated with the standard Pascal VOC folder structure,
+as shown in Fig. \ref{fig:voc_structure}. The module ensures that the generated
+files, including XML annotations and segmentation masks, are organized according
+to the VOC specification within this structure.
 
 \begin{figure}[htbp]
 \dirtree{%
@@ -388,29 +398,39 @@ The directory structure is shown in Fig. \ref{fig:voc_structure}.
 \label{fig:voc_structure}
 \end{figure}
 
-The text files contains the names of the images files. The
-format of the text files is shown in Listing \ref{lst:voc_txt}.
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=0.6\linewidth]{figs/img_0012-rectangle-Segmentation.png}
+    \caption{Segmentation mask generated from rectangle annotation in Pascal VOC format.}
+    \label{fig:voc_seg}
+\end{figure}
 
-\begin{lstlisting}[style=json, caption={Example Pascal VOC format text file}, label={lst:voc_txt}]
+The `ImageSets` directory contains text files (e.g., `train.txt`, `val.txt`)
+that list the filenames of images belonging to each split, as shown in
+Listing \ref{lst:voc_txt}.
+
+\begin{lstlisting}[style=json, caption={Example Pascal VOC ImageSet text file}, label={lst:voc_txt}]
 000001.jpg
 000002.jpg
 ...
 \end{lstlisting}
 
-The XML files contains the annotations for each image. The main challenge in
-transforming the Labelme dataset to the Pascal VOC format is to convert the
-segmentation coordinates to the bounding box coordinates for polygon and
-circle shapes, and to achieve this, we can take the minimum and maximum
-coordinates of the shape.
+The XML files in the `Annotations` directory contain the object annotations
+for each image. A key aspect of transforming Labelme data to Pascal VOC is
+converting complex shapes like polygons and circles into axis-aligned bounding
+boxes for the XML format. This is achieved by determining the minimum and
+maximum coordinates of the shape.
 
-The XML files follow the standard VOC schema, as shown in Listing \ref{lst:voc_txt}.
+The XML files follow the standard VOC schema, an example of which is shown
+in Listing \ref{lst:voc_xml}. Note that for our dataset, the class name will
+be "head".
 
-\begin{lstlisting}[style=json, caption={Example Pascal VOC format XML file}, label={lst:voc_txt}]
+\begin{lstlisting}[style=json, caption={Example Pascal VOC XML annotation file}, label={lst:voc_xml}]
 <annotation>
     <folder>VOC2012</folder>
     <filename>000001.jpg</filename>
     <object>
-        <name>cat</name>
+        <name>head</name>
         <bndbox>
             <xmin>100</xmin>
             <ymin>100</ymin>
