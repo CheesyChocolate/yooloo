@@ -92,7 +92,7 @@ typically structured as shown in Fig. \ref{fig:labelme_structure}.
 \end{figure}
 
 While this structure is rich in information and easy to parse programmatically,
-it is not directly compatible with the input requirements of popular deep
+it is not directly compatible with the input requirements of common deep
 learning frameworks and model architectures. Frameworks like Darknet/YOLO,
 standard COCO-based models, or Pascal VOC-based pipelines require annotations
 in specific formats---such as aggregated JSONs, flat text files with normalized
@@ -163,12 +163,12 @@ of a larger unlabeled pool, significantly reducing manual effort.
 
 \subsection{Data Conversion Workflow}
 
-The final stage of the implementation involved converting these annotated
-datasets into industry-standard formats. We developed a Python-based converter
-tool that parses the Labelme JSON outputs and systematically transforms them
-into YOLO, COCO, and Pascal VOC formats. This ensures that the data, whether
-manually labeled or semi-automatically generated, is immediately usable by
-standard deep learning frameworks.
+For simplicity and clarity in this report, annotations were restricted to a
+single class ("head") and separated by shape type. However, it is important to
+note that the developed converter tool is fully general-purpose. It is capable
+of processing complex datasets containing multiple classes and mixed annotation
+types (e.g., polygons, rectangles, circles) within the same image and directory
+structure.
 
 \subsection{Input Directory Structure}
 
@@ -475,5 +475,34 @@ be "head".
     </object>
 </annotation>
 \end{lstlisting}
+
+\section{Conclusion}
+
+This project successfully established a comprehensive pipeline for image
+annotation and data conversion, addressing a critical gap in computer vision
+workflows. By utilizing Labelme for the initial annotation of the "head" class
+within the Clothing Co-Parsing dataset, we demonstrated both instance-based
+(supervised) and simulated semi-supervised annotation strategies. The distinct
+use of rectangle and polygon modes highlighted the trade-offs between
+annotation speed and segmentation precision.
+
+The core contribution of this work is the development of a modular Python-based
+converter tool. This tool effectively bridges the gap between the raw,
+software-specific JSON outputs of Labelme and the standardized input formats
+required by widely used deep learning frameworks. It demonstrates robust
+handling of multi-class datasets and diverse annotation shapes, ensuring high
+fidelity in the conversion process. We successfully verified the generation of:
+
+\begin{itemize}
+    \item \textbf{COCO} formatted JSONs, preserving exact polygonal segmentation.
+    \item \textbf{YOLO} formatted text files with normalized bounding box coordinates.
+    \item \textbf{Pascal VOC} formatted XML annotations and semantic segmentation masks.
+\end{itemize}
+
+This workflow ensures that annotated data is not merely stored but is
+immediately actionable for training detection and segmentation models. Future
+enhancements could include support for additional formats (e.g., TFRecord),
+automated data augmentation integration, and extended support for keypoint
+annotations.
 
 \end{document}
