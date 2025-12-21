@@ -60,10 +60,19 @@ email@domain.com}}
 
 \section{Introduction}
 
-Labelme is a graphical image annotation tool that enables users to
-label objects in images. This tool creates a JSON file for each image, which
-contains the annotations. The output of dataset annotated with Labelme shown
-in the following example:
+Labelme is a widely used, open-source graphical image annotation tool that
+enables users to label objects in images for computer vision tasks. Developed
+in Python and using the Qt library for its graphical interface, it is
+cross-platform and supports a variety of annotation types, including polygons,
+rectangles, circles, lines, and points. This versatility makes it suitable for
+diverse tasks such as object detection, semantic segmentation, and instance
+segmentation.
+
+For every annotated image, Labelme generates a corresponding JSON file. This
+file contains metadata about the image (such as its path and dimensions) and a
+detailed list of shapes representing the annotations, including their label
+names and coordinate points. The output of a dataset annotated with Labelme is
+typically structured as shown in Fig. \ref{fig:labelme_structure}.
 
 \begin{figure}[htbp]
 \dirtree{%
@@ -78,12 +87,20 @@ in the following example:
 	.2 \ldots.
 }
 \caption{Structure of a Labelme dataset}
+\label{fig:labelme_structure}
 \end{figure}
 
-This structure is enriched with information but it is not suitable for
-training a neural network. The Labelme converter is a tool that converts the
-Labelme dataset into a format that is compatible with the training process of
-a neural network.
+While this structure is rich in information and easy to parse programmatically,
+it is not directly compatible with the input requirements of popular deep
+learning frameworks and model architectures. Frameworks like Darknet/YOLO,
+standard COCO-based models, or Pascal VOC-based pipelines require annotations
+in specific formats---such as aggregated JSONs, flat text files with normalized
+coordinates, or XML files---often accompanied by strict directory structures.
+
+The goal of the Labelme converter is to bridge this gap. It serves as a
+comprehensive tool that parses the raw Labelme dataset and transforms it into a
+format ready for the training process of a neural network, thereby streamlining
+the workflow from data annotation to model training.
 
 \section{Converter}
 
@@ -104,7 +121,7 @@ The labelme2coco module takes the directory of the Labelme
 dataset as input and generates a directory with the COCO dataset. The
 module supports splitting the dataset into training and validation sets. The
 split is done randomly, and the user can specify the ratio of the split. The
-output directory will contain the following structure:
+output directory will contain the structure shown in Fig. \ref{fig:coco_structure}.
 
 \begin{figure}[htbp]
 \dirtree{%
@@ -125,15 +142,14 @@ output directory will contain the following structure:
 	.3 \ldots.
 }
 \caption{Structure of the generated COCO dataset}
+\label{fig:coco_structure}
 \end{figure}
 
 The JSON files in the annotations directory have some required
 fields which should derive from the Labelme dataset. The minimum required
-fields for the COCO format are the following:
+fields for the COCO format are shown in Listing \ref{lst:coco_json}.
 
-\vspace{0.5cm}
-
-\begin{lstlisting}[style=json, caption={Example COCO format JSON file}]
+\begin{lstlisting}[style=json, caption={Example COCO format JSON file}, label={lst:coco_json}]
 {
 	"images": [
 		{
@@ -177,7 +193,7 @@ The labelme2yolo module takes the directory of the Labelme
 dataset as input and generates a directory with the YOLO dataset. The
 module supports splitting the dataset into training and validation sets. The
 split is done randomly, and the user can specify the ratio of the split. The
-output directory will contain the following structure:
+output directory will contain the structure shown in Fig. \ref{fig:yolo_structure}.
 
 \begin{figure}[htbp]
 \dirtree{%
@@ -199,13 +215,12 @@ output directory will contain the following structure:
 	.4 \ldots.
 }
 \caption{Structure of the generated YOLO dataset}
+\label{fig:yolo_structure}
 \end{figure}
 
-The data.yaml file contains the following fields:
+The data.yaml file contains the fields shown in Listing \ref{lst:yolo_yaml}.
 
-\vspace{0.5cm}
-
-\begin{lstlisting}[style=json, caption={Example YOLO format data.yaml file}]
+\begin{lstlisting}[style=json, caption={Example YOLO format data.yaml file}, label={lst:yolo_yaml}]
 path: absolute/path/to/yolov8_dataset
 train: images/train
 val: images/val
@@ -219,11 +234,9 @@ names:
 \end{lstlisting}
 
 The text files contains the annotations for each image. The format
-of the text files is as follows:
+of the text files is shown in Listing \ref{lst:yolo_txt}.
 
-\vspace{0.5cm}
-
-\begin{lstlisting}[style=json, caption={Example YOLO format text file}]
+\begin{lstlisting}[style=json, caption={Example YOLO format text file}, label={lst:yolo_txt}]
 	class_id1 x_center y_center width height
 	class_id2 x_center y_center width height
 	...
@@ -238,7 +251,7 @@ The labelme2voc module takes the directory of the Labelme
 dataset as input and generates a directory with the Pascal VOC dataset. The
 module supports splitting the dataset into training and validation sets. The
 split is done randomly, and the user can specify the ratio of the split. The
-output directory will contain the following structure:
+output directory will contain the structure shown in Fig. \ref{fig:voc_structure}.
 
 \begin{figure}[htbp]
 \dirtree{%
@@ -281,14 +294,13 @@ output directory will contain the following structure:
 	.4 \ldots.
 }
 \caption{Structure of the generated Pascal VOC dataset}
+\label{fig:voc_structure}
 \end{figure}
 
 The text files contains the names of the images files. The
-format of the text files is as follows:
+format of the text files is shown in Listing \ref{lst:voc_txt}.
 
-\vspace{0.5cm}
-
-\begin{lstlisting}[style=json, caption={Example Pascal VOC format text file}]
+\begin{lstlisting}[style=json, caption={Example Pascal VOC format text file}, label={lst:voc_txt}]
 000001.jpg
 000002.jpg
 ...
