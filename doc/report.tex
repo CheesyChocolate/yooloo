@@ -174,8 +174,8 @@ standard deep learning frameworks.
 
 The annotated data was organized into a directory structure compatible with the
 converter. For each subset, the original image files and their corresponding
-generated JSON files were placed in the same directory. The structure is as
-follows:
+generated JSON files were placed in the same directory. The input directory
+structure for the experiments is shown in Fig. \ref{fig:input_structure}.
 
 \begin{figure}[htbp]
 \dirtree{%
@@ -237,7 +237,8 @@ Labelme.
 
 The module supports random splitting of the dataset based on a user-defined
 ratio. The output directory structure is shown in Fig.
-\ref{fig:coco_structure}.
+\ref{fig:coco_structure}, and an example of the preserved segmentation mask
+is visualized in Fig. \ref{fig:coco_seg}.
 
 \begin{figure}[htbp]
 \dirtree{%
@@ -380,7 +381,8 @@ For detection, it generates XML files containing bounding boxes for all
 annotated shapes (polygons are converted to their enclosing bounding boxes).
 For segmentation, it rasterizes the polygons and rectangles into pixel-wise
 masks (PNG images), saved in the \texttt{SegmentationClass} and
-\texttt{SegmentationObject} directories.
+\texttt{SegmentationObject} directories. An example of such a mask generated
+from a rectangle annotation is shown in Fig. \ref{fig:voc_seg}.
 
 The output directory is populated with the standard Pascal VOC folder structure,
 as shown in Fig. \ref{fig:voc_structure}. The module ensures that the generated
