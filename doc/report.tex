@@ -179,24 +179,32 @@ image in both rectangle and polygon modes.
 
 \section{Converter}
 
-The Labelme converter is a Python script that takes the Labelme
-dataset as input and generates a new dataset in a different format. As of
-writing this report, the converter is capable of converting the dataset into
-the following formats:
+The Labelme converter is a Python-based command-line tool designed to transform
+datasets annotated in Labelme into standard formats required by major computer
+vision frameworks. The tool adopts a modular architecture, where each target
+format is handled by a specialized module. This design allows for easy
+extensibility and maintenance.
 
+As of writing this report, the converter supports the following target formats:
 \begin{itemize}
-	\item COCO
-	\item YOLO
-	\item Pascal VOC
+    \item \textbf{COCO:} Standard JSON-based format for object detection and
+	    segmentation.
+    \item \textbf{YOLO:} Flat text-file format with normalized coordinates,
+	    optimized for the YOLO family of models.
+    \item \textbf{Pascal VOC:} XML-based format for detection, accompanied by
+	    PNG masks for segmentation.
 \end{itemize}
 
 \subsection{labelme2coco module}
 
-The labelme2coco module takes the directory of the Labelme
-dataset as input and generates a directory with the COCO dataset. The
-module supports splitting the dataset into training and validation sets. The
-split is done randomly, and the user can specify the ratio of the split. The
-output directory will contain the structure shown in Fig. \ref{fig:coco_structure}.
+The \texttt{labelme2coco} module aggregates all annotations into a single JSON
+file (or two, if splitting for training/validation). It is ideal for instance
+segmentation tasks as it preserves the exact polygonal coordinates defined in
+Labelme.
+
+The module supports random splitting of the dataset based on a user-defined
+ratio. The output directory structure is shown in Fig.
+\ref{fig:coco_structure}.
 
 \begin{figure}[htbp]
 \dirtree{%
@@ -220,9 +228,10 @@ output directory will contain the structure shown in Fig. \ref{fig:coco_structur
 \label{fig:coco_structure}
 \end{figure}
 
-The JSON files in the annotations directory have some required
-fields which should derive from the Labelme dataset. The minimum required
-fields for the COCO format are shown in Listing \ref{lst:coco_json}.
+The generated JSON files adhere strictly to the COCO schema. Listing
+\ref{lst:coco_json} illustrates the key fields. Note that the
+\texttt{segmentation} field retains the polygon points, while \texttt{bbox} and
+\texttt{area} are automatically calculated from the shape.
 
 \begin{lstlisting}[style=json, caption={Example COCO format JSON file}, label={lst:coco_json}]
 {
@@ -257,18 +266,17 @@ fields for the COCO format are shown in Listing \ref{lst:coco_json}.
 }
 \end{lstlisting}
 
-Almost all fields can be derived from the Labelme dataset. The
-fields "supercategory", and "iscrowd" can be set to default values. The
-"area" and "bbox" fields can be calculated from the segmentation
-coordinates based on the shape type.
-
 \subsection{labelme2yolo module}
 
-The labelme2yolo module takes the directory of the Labelme
-dataset as input and generates a directory with the YOLO dataset. The
-module supports splitting the dataset into training and validation sets. The
-split is done randomly, and the user can specify the ratio of the split. The
-output directory will contain the structure shown in Fig. \ref{fig:yolo_structure}.
+The \texttt{labelme2yolo} module is designed for object detection workflows
+(specifically YOLOv8). A key feature of this module is the normalization of
+coordinates. Regardless of whether the input is a rectangle or a polygon, the
+module calculates the bounding box and converts coordinates to the range $[0,
+1]$ relative to the image dimensions.
+
+The output directory contains a \texttt{data.yaml} configuration file and
+separate text files for each image, organized into train/val folders as shown
+in Fig. \ref{fig:yolo_structure}.
 
 \begin{figure}[htbp]
 \dirtree{%
@@ -293,7 +301,8 @@ output directory will contain the structure shown in Fig. \ref{fig:yolo_structur
 \label{fig:yolo_structure}
 \end{figure}
 
-The data.yaml file contains the fields shown in Listing \ref{lst:yolo_yaml}.
+The \texttt{data.yaml} file (Listing \ref{lst:yolo_yaml}) defines the dataset
+paths and class names, which is essential for training YOLO models.
 
 \begin{lstlisting}[style=json, caption={Example YOLO format data.yaml file}, label={lst:yolo_yaml}]
 path: absolute/path/to/yolov8_dataset
@@ -308,8 +317,9 @@ names:
 	...
 \end{lstlisting}
 
-The text files contains the annotations for each image. The format
-of the text files is shown in Listing \ref{lst:yolo_txt}.
+The annotation text files use the standard YOLO format: \texttt{<class\_id>
+<x\_center> <y\_center> <width> <height>}, as shown in Listing
+\ref{lst:yolo_txt}. All values are normalized.
 
 \begin{lstlisting}[style=json, caption={Example YOLO format text file}, label={lst:yolo_txt}]
 	class_id1 x_center y_center width height
@@ -317,16 +327,22 @@ of the text files is shown in Listing \ref{lst:yolo_txt}.
 	...
 \end{lstlisting}
 
-These values should ne calculated based on the shape type and the
+These values should be calculated based on the shape type and the
 coordinates of the shape.
 
 \subsection{labelme2voc module}
 
-The labelme2voc module takes the directory of the Labelme
-dataset as input and generates a directory with the Pascal VOC dataset. The
-module supports splitting the dataset into training and validation sets. The
-split is done randomly, and the user can specify the ratio of the split. The
-output directory will contain the structure shown in Fig. \ref{fig:voc_structure}.
+The \texttt{labelme2voc} module generates a dataset complying with the Pascal
+VOC standard. This module is unique because it handles both object detection
+and semantic segmentation simultaneously.
+
+For detection, it generates XML files containing bounding boxes for all
+annotated shapes (polygons are converted to their enclosing bounding boxes).
+For segmentation, it rasterizes the polygons and rectangles into pixel-wise
+masks (PNG images), saved in the \texttt{SegmentationClass} and
+\texttt{SegmentationObject} directories.
+
+The directory structure is shown in Fig. \ref{fig:voc_structure}.
 
 \begin{figure}[htbp]
 \dirtree{%
@@ -386,5 +402,23 @@ transforming the Labelme dataset to the Pascal VOC format is to convert the
 segmentation coordinates to the bounding box coordinates for polygon and
 circle shapes, and to achieve this, we can take the minimum and maximum
 coordinates of the shape.
+
+The XML files follow the standard VOC schema, as shown in Listing \ref{lst:voc_txt}.
+
+\begin{lstlisting}[style=json, caption={Example Pascal VOC format XML file}, label={lst:voc_txt}]
+<annotation>
+    <folder>VOC2012</folder>
+    <filename>000001.jpg</filename>
+    <object>
+        <name>cat</name>
+        <bndbox>
+            <xmin>100</xmin>
+            <ymin>100</ymin>
+            <xmax>200</xmax>
+            <ymax>200</ymax>
+        </bndbox>
+    </object>
+</annotation>
+\end{lstlisting}
 
 \end{document}
